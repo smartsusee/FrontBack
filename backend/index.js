@@ -6,13 +6,13 @@ const mongoose = require("mongoose");
 const dataSchema = require("./schema");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const router = require("./router/Router");
+const cors = require("cors");
 dotenv.config();
 
 app.use(express.json());
-app.use("/api", router);
+app.use(cors());
 mongoose
-  .connect("mongodb://127.0.0.1:27017/userDetailsStored")
+  .connect(process.env.DB_HOST)
   .then(() => {
     console.log("db is connected");
   })
@@ -36,12 +36,19 @@ function tokenVerify(req, res, next) {
     res.json(err);
   }
 }
-app.get("/get", tokenVerify, async (req, res) => {
-  if (req.user.role === "admin") {
+app.get("/get", async (req, res) => {
+  //   if (req.user.role === "admin") {
+  //     let findtheData = await dataSchema.find();
+  //     res.json(findtheData);
+  //   } else {
+  //     res.json("you are not admin");
+  //   }
+
+  try {
     let findtheData = await dataSchema.find();
     res.json(findtheData);
-  } else {
-    res.json("you are not admin");
+  } catch (err) {
+    res.json(err);
   }
 });
 
@@ -91,7 +98,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.put("/updateData/:id", async (req, res) => {
-  let updateData = await dataSchema.findByIdAndUpdate(req.params.id, req.body, {
+  await dataSchema.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });
 
@@ -99,7 +106,7 @@ app.put("/updateData/:id", async (req, res) => {
 });
 
 app.delete("/DeleteData/:id", async (req, res) => {
-  let DeleteData = await dataSchema.findByIdAndDelete(req.params.id);
+  await dataSchema.findByIdAndDelete(req.params.id);
 
   res.json("you'r Data Deleted Successfully");
 });
